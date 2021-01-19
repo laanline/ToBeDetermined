@@ -35,6 +35,8 @@ declare -A cart_count_array
 #this array contains the toppings and prices for those toppings. Key=Topping, Value=Price
 declare -A topping_menu=([Sausage]=8 [Pepperoni]=8 [Cheese]=6 [Pineapple]=7 [Meat-Lovers]=10)
 
+toppings_array=( "Cheese" "Pineapple" "Sausage" "Pepperoni" "Meat-Lovers" )
+
 #not being used yet, but it will allow manipulation of the final order
 declare -A final_order_size
 declare -A final_order_topping_selection
@@ -64,10 +66,17 @@ found_size=false
 
 echo "What size pizza would you like?"
 
-for size in "${!size_menu[@]}";
-do
-	echo "Size: $size 		Price: \$${size_menu[$size]}";
+for size in "${size_array[@]}"; do
+	for linked_size in "${!size_menu[@]}"; do
+		if [ "$size" == "$linked_size" ]; then
+			echo "Size: $size 		Price: \$${size_menu[$size]}";
+		fi
+	done
 done
+#for size in "${!size_menu[@]}";
+#do
+#	echo "Size: $size 		Price: \$${size_menu[$size]}";
+#done
 
 #users input for what size they want
 read -p "`echo $'\n>'`" size_selection
@@ -92,7 +101,7 @@ done
 if [ "$found_size" == "false" ]; then
 
 	echo "You entered $size_selection"
-    echo "Please enter a valid size"
+    echo "Please check your error."
     what_size_pizza
 
 fi
@@ -113,13 +122,19 @@ function what_type_pizza
 price_for_topping=""
 topping_of_pizza=""
 
-echo -e "\nWhat type of topping would you like for your pizza?"
+echo -e "\nWhat topping would you like for your pizza?"
+
 
 #loop through the toppings and print the topping and price
-for topping in "${!topping_menu[@]}";
-do
-	echo "Topping: $topping 		Price: \$${topping_menu[$topping]}";
+for topping in "${toppings_array[@]}"; do
+	for linked_topping in "${!topping_menu[@]}"; do
+		if [ "$topping" == "$linked_topping" ]; then
+			echo "Topping: $topping 		Price: \$${topping_menu[$topping]}";
+		fi
+	done
 done
+
+
 
 #user enters what topping they want
 read -p "`echo $'\n>'`" topping_selection
@@ -142,15 +157,14 @@ price_for_this_pizza_int=$(( "$price_for_size" + "$price_for_topping" ))
 
 
 #read their order back to them
-echo -e "You have chosen a $size_of_pizza $topping_of_pizza Pizza for \$$price_for_this_pizza_int"
+echo -e "You picked a $size_of_pizza $topping_of_pizza Pizza for \$$price_for_this_pizza_int"
 
 
 #did they order the correct thing?
-read -p "Is this correct?:`echo $'\n>'`" correct_selection
+read -p "Are you sure?:`echo $'\n>'`" correct_selection
 
 #if what the user selected is correct
 if [[ "$correct_selection" == "Yes" ]]; then 
-	echo "Good Job"
 
 	#add 1 pizza to the cart (number_of_pizzas) and echo how many pizzas are in the cart
 	number_of_pizzas=$((number_of_pizzas+1))
@@ -179,7 +193,7 @@ if [[ "$correct_selection" == "Yes" ]]; then
 
  
 	#show them what is in their cart
-	echo "This is the cart now"
+	echo "Here's your order:"
 	echo "************************************************************************************"
 
 	#loop through cart, for each key, print the key, value, and count (from cart count array at that element)
@@ -196,7 +210,26 @@ if [[ "$correct_selection" == "Yes" ]]; then
 	if [[ "$thank_you_sir_may_i_have_another" == "Yes" ]]; then
 		what_size_pizza
 	else
-		echo "That's all for now"
+ 
+
+		echo "$customer_name, here's your order summary:"
+
+		#echo "$size_of_pizza $topping_of_pizza Pizza for \$$price_for_this_pizza_int"
+		total=0
+
+
+		for pizza_order in "${!cart[@]}";do
+			echo "Pizza: $pizza_order 		Price: \$${cart[$pizza_order]}		Count: ${cart_count_array[$pizza_order]}";
+	
+
+			total=$((${cart[$pizza_order]} + total))
+
+		done
+
+		#echo "Pizza: $pizza_order 		Price: \$${cart[$pizza_order]}		Count: ${cart_count_array[$pizza_order]}";
+
+		echo "Your total is \$$total dollars."
+
 
 
 	fi
