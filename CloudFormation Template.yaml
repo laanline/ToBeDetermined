@@ -1,0 +1,112 @@
+AWSTemplateFormatVersion: 2010-09-09
+
+Description: >-
+  This templates creates a 
+  security group and 
+  and an EC2 Instance
+
+Parameters:
+  KeyName:
+    Type: AWS::EC2::KeyPair::KeyName
+    ConstraintDescription: Must be the name of an existing EC2 Key Pair
+  
+  InstanceType: 
+    Type: String
+    Default: t2.micro
+    AllowedValues: 
+      - t1.micro
+      - t2.nano
+      - t2.micro
+      - t2.small
+      - t2.medium
+      - t2.large
+  SubnetId: 
+    Type: AWS::EC2::Subnet::Id
+    # Type: List<AWS::EC2::Subnet::Id> => lets you chose more than one
+  
+  EC2TagName: 
+    Type: String
+  
+  SecurityGroupTagName: 
+    Type: String
+
+Resources:
+  MyDemoInstance:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: ami-02642c139a9dfb378
+      InstanceType: !Ref InstanceType
+      KeyName: !Ref KeyName
+      SubnetId: !Ref SubnetId
+      SecurityGroupIds:
+        - !Ref DemoSecurityGroup
+      Tags:
+        - Key: Name
+          Value: !Ref EC2TagName
+
+  # Create a Security Group
+  DemoSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Enable SSH and HTTP access via ports 22 and 80
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 76.108.243.190/32 # My IP
+        
+        - IpProtocol: tcp # Protocol
+          FromPort: 3389 # Port 
+          ToPort: 3389
+          CidrIp: 173.79.109.86/32
+      Tags: 
+        - Key: Name
+          Value: !Ref SecurityGroupTagName
+      VpcId: vpc-f0dc788d
+
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: "Amazon EC2 Configuration"
+        Parameters:
+          - InstanceType
+          - KeyName
+          - EC2TagName
+          - SecurityGroupTagName
+
+      - Label:
+          default: "Network Configuration"
+        Parameters:
+          - SubnetId
+    
+    ParameterLabels:
+      InstanceType: 
+        default: Which instance type will you use?
+      KeyName: 
+        default: Choose an existing Key Pair
+      EC2TagName:
+        default: What name are you planning to give your Instance?
+      SecurityGroupTagName:
+        default: What name are you planning to give your security group?
+      SubnetId:
+        default: Choose a subnet to deploy your instance in
+
+
+Outputs:
+  InstanceID:
+    Description: The Instance ID
+    Value: !Ref MyDemoInstance
+  PrivateIp:
+    Description: The Private IP of the instance
+    Value: !GetAtt MyDemoInstance.PrivateIp
+  PublicIp:
+    Description: The Public IP of the instance
+    Value: !GetAtt MyDemoInstance.PublicIp
+  SecurityGroupID:
+    Description: ID of the Security Group
+    Value: !Ref DemoSecurityGroup
+      
+
+
+
